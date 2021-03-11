@@ -38,8 +38,11 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
         if (xhr.readyState==4) {
             try {
                 if (xhr.status==200) {
-                    //XXX: parse some JSON from the request!
-                    //XXX: Pass the data to the callback!
+                    var body = xhr.response;
+                    var parse_body = Json.parse(body);
+                    callback(parse_body);
+                    //XXX: parse some JSON from the request! done?
+                    //XXX: Pass the data to the callback! Done?
                 }
             } 
             catch(e) {
@@ -47,9 +50,13 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             }
         }
     };
+    xhr.open("POST", url);
     //XXX: POST to a URL
     //XXX: set the mimetype and the accept headers!
+    xhr.setRequestHeader("idk", "Idk2");
+    xhr.overrideMimeType("application/json");
     // Remember to use application/json !
+    xhr.send()
 }
 
 
@@ -138,6 +145,7 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just  modified!
+
 
 }
 
@@ -261,7 +269,18 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 
 
 function update() {
-    //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
+    //XXX: TODO Get the world from the webservice using a XMLHTTPRequest Why XML requests? that is weird. 
+    // Might have to play with this after
+    var xhr = new XMLHttpRequest();
+    var uri = "http://"+host+"/world"
+    xhr.open('GET', uri); //what to use here?
+    xhr.onreadystatechange() = function(){
+        if(xhr.readyState === 4){
+            if(xhr.status === 200){
+                successCallback( xhr.responseText );
+            }
+        }
+    }
     drawFrame();
 }
 
