@@ -24,6 +24,8 @@
 import flask
 from flask import Flask, request
 import json
+
+from flask.helpers import make_response
 app = Flask(__name__)
 app.debug = True
 
@@ -78,6 +80,15 @@ def hello():
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
+    if request.method == 'POST':
+        #do stuff
+        input_json = request.json
+        #print(input_json)
+        myWorld.set(entity, input_json) #is this even right?
+        return input_json #idk if I should return something else but meh
+    else:
+        #request method is PUT -> modify
+        pass
     '''update the entities via this interface'''
     return None
 
