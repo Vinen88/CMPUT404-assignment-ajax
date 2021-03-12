@@ -39,24 +39,33 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             try {
                 if (xhr.status==200) {
                     var body = xhr.response;
-                    var parse_body = Json.parse(body);
+                    var parse_body = JSON.parse(body);
                     callback(parse_body);
                     //XXX: parse some JSON from the request! done?
                     //XXX: Pass the data to the callback! Done?
                 }
             } 
             catch(e) {
-                alert('Error: ' + e.name);
+                console.error(e)
+                alert('Error: ' + e);
             }
         }
     };
-    xhr.open("POST", url);
+    if (objects == null){
+        xhr.open("GET", url);
+    }
+    else{
+        xhr.open("POST", url)
+    }
+
+    var data = JSON.stringify(objects)
     //XXX: POST to a URL
     //XXX: set the mimetype and the accept headers!
-    xhr.setRequestHeader("idk", "Idk2");
-    xhr.overrideMimeType("application/json");
+    xhr.setRequestHeader("Content-type", "application/json");
+    //xhr.overrideMimeType("application/json");
+    xhr.setRequestHeader("Accept", "application/json")
     // Remember to use application/json !
-    xhr.send()
+    xhr.send(data) 
 }
 
 
@@ -79,10 +88,10 @@ function drawCircle(context,entity) {
 
 function prepEntity(entity) {
     if (!entity["colour"]) {
-        entity["colour"] = "#FF0000";
+        entity["colour"] = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
     }
     if (!entity["radius"]) {
-        entity["radius"] = 50;
+        entity["radius"] = 50
     }
     return entity;
 }
@@ -145,6 +154,7 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just  modified!
+    sendJSONXMLHTTPRequest('/entity/'+entity, data, drawNextFrame);
 
 
 }
@@ -254,33 +264,39 @@ mouse = (function() {
 
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
+//random colour gen code from https://stackoverflow.com/questions/1484506/random-color-generator
+// AUTHOR: Anatoliy -> https://stackoverflow.com/users/161832/anatoliy
+function random_colour(){
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':random_colour()});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':random_colour(),'radius':Math.random()*(100-25)+25});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
+    addEntityWithoutName({'x':x,'y':y,'colour':random_colour(),
                           'radius':10});
 });
 
+function update_assist(body){
+    world = body;
+    drawNextFrame();
+}
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest Why XML requests? that is weird. 
     // Might have to play with this after
-    var xhr = new XMLHttpRequest();
-    var uri = "http://"+host+"/world"
-    xhr.open('GET', uri); //what to use here?
-    xhr.onreadystatechange() = function(){
-        if(xhr.readyState === 4){
-            if(xhr.status === 200){
-                successCallback( xhr.responseText );
-            }
-        }
-    }
+    sendJSONXMLHTTPRequest('/world', null, update_assist);
     drawFrame();
 }
 

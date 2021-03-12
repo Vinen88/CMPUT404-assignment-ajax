@@ -80,33 +80,30 @@ def hello():
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
-    if request.method == 'POST':
-        #do stuff
-        input_json = request.json
-        #print(input_json)
-        myWorld.set(entity, input_json) #is this even right?
-        return input_json #idk if I should return something else but meh
-    else:
-        #request method is PUT -> modify
-        pass
     '''update the entities via this interface'''
-    return None
+    data = flask_post_json()
+    print(entity, data)
+    for key, value in data.items():
+        myWorld.update(entity, key, value)
+    ret_value = myWorld.get(entity)
+    return json.dumps(ret_value), 200
+    
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
     '''you should probably return the world here'''
-    return myWorld.world()
+    return json.dumps(myWorld.world()), 200
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
-    return myWorld.get(entity) #maybe?
+    return json.dumps(myWorld.get(entity)), 200 #maybe?
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
     myWorld.clear() #dunno if I should return anything
-    return None
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}  #maybe I should return world?
 
 if __name__ == "__main__":
     app.run()
